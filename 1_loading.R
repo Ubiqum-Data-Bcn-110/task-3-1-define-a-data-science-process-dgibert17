@@ -3,6 +3,7 @@ rm(list = ls())
 library(lubridate)
 library(dplyr)
 library(ggplot2)
+library(tidyr)
 
 setwd("C:/Users/David/Google Drive/Ubiqum/6_EnergyConsumption")
 
@@ -16,7 +17,7 @@ df = read.table("power_consumption.txt",
                 stringsAsFactors = F,
                 header = T)
 
-save(df, file = "DFenergy.Rdata")
+save(df, file = "C:/Users/David/Google Drive/Github/task-3-1-define-a-data-science-process-dgibert17/DFenergy.Rdata")
 
 ## FUNCTION TO CHANGE SOME COLUMNS'S CLASS
 # toNumeric <- function(x) {

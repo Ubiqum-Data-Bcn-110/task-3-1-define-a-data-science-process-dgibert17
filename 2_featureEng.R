@@ -33,7 +33,7 @@
 
 rm(list = ls())
 
-setwd("C:/Users/David/Google Drive/Ubiqum/6_EnergyConsumption")
+setwd("C:/Users/David/Google Drive/Github/task-3-1-define-a-data-science-process-dgibert17")
 load(file = "DFenergy.Rdata")
 
 df <- cbind(df,
@@ -47,4 +47,19 @@ df <- df[, c(ncol(df), 1:(ncol(df)-1))] #Order columns. First dateTime then othe
 df$dateTime <- dmy_hms(df$dateTime)
 df$date <- as.Date(df$date, "%d/%m/%Y")
 
-str(df)
+df2 = df[,c(1,4:10)]
+
+summary(df2)
+
+df2 = df2 %>%
+  mutate(global_active_KWh = (global_active_power*1000)/60, #El global en KWh
+         global_rest_KWh = ((global_active_power*1000)/60) -kitchen -laundry_room -heater_conditioner,
+         #Global rest es el gasto de energia que no contempla submetering
+         ############################ IMPORTANTE #################################
+         ## EL GLOBAL REST MUESTRA UN GASTO ENORME QUE NO SABEMOS DE DONDE SALE ##
+         #########################################################################
+         global_submeter = kitchen + laundry_room + heater_conditioner, #Gasto de submetering
+         substract_active_rest = global_active_KWh - global_rest_KWh #Gasto de submetering
+         )
+
+write.csv(df2, file = "df2.csv")
