@@ -1,0 +1,26 @@
+rm(list = ls())
+
+library(lubridate)
+library(dplyr)
+library(ggplot2)
+
+setwd("C:/Users/David/Google Drive/Ubiqum/6_EnergyConsumption")
+
+df = read.table("power_consumption.txt",
+                sep = ";",
+                dec = ".",
+                col.names = c("date", "time", "global_active_power",
+                              "global_reactive_power", "voltage", "global_intensity",
+                              "kitchen", "laundry_room", "heater_conditioner"),
+                na.strings = c("?", "-", "NA"),
+                stringsAsFactors = F,
+                header = T)
+
+save(df, file = "DFenergy.Rdata")
+
+## FUNCTION TO CHANGE SOME COLUMNS'S CLASS
+# toNumeric <- function(x) {
+#   for (i in 3:ncol(x)) {
+#     x[,i] <- as.numeric(x[,i])
+#   }
+# }
