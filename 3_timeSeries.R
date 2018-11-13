@@ -36,9 +36,9 @@ tzone(submeter.ts) <- Sys.timezone()
 tzone(total.ts)    <- Sys.timezone()
 tzone(rest.ts)     <- Sys.timezone()
 
-write.csv(x = df2,
-          file = "C:/Users/David/Google Drive/energy_consumption.csv",
-          na = "NA",
-          row.names = F
-          )
+# write.csv(x = df2,
+#           file = "C:/Users/David/Google Drive/energy_consumption.csv",
+#           na = "NA",
+#           row.names = F
+#           )
 
