@@ -33,11 +33,16 @@
 
 rm(list = ls())
 
+library(lubridate)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+
 setwd("C:/Users/David/Google Drive/Github/task-3-1-define-a-data-science-process-dgibert17")
-load(file = "DFenergy.Rdata")
+load(file = "DFenergy_original.Rdata")
 
 df <- cbind(df,
-            paste(df$date, df$time),
+            paste0(df$date, df$time),
             stringsAsFactors = FALSE)
 
 colnames(df)[10] <- "dateTime"
@@ -52,14 +57,20 @@ df2 = df[,c(1,4:10)]
 summary(df2)
 
 df2 = df2 %>%
-  mutate(global_active_KWh = (global_active_power*1000)/60, #El global en KWh
-         global_rest_KWh = ((global_active_power*1000)/60) -kitchen -laundry_room -heater_conditioner,
-         #Global rest es el gasto de energia que no contempla submetering
+  mutate(total_consump_KWh = ((global_active_power + global_reactive_power)*1000)/60, #El global en KWh
+         total_rest_KWh = total_consump_KWh -kitchen -laundry_room -heater_conditioner,
+         #total rest es el gasto de energia que no contempla submetering
          ############################ IMPORTANTE #################################
-         ## EL GLOBAL REST MUESTRA UN GASTO ENORME QUE NO SABEMOS DE DONDE SALE ##
+         ## EL TOTAL REST MUESTRA UN GASTO ENORME QUE NO SABEMOS DE DONDE SALE ##
          #########################################################################
-         global_submeter = kitchen + laundry_room + heater_conditioner, #Gasto de submetering
-         substract_active_rest = global_active_KWh - global_rest_KWh #Gasto de submetering
-         )
+         total_submeter = kitchen + laundry_room + heater_conditioner #Gasto de submetering
+  )
 
-write.csv(df2, file = "df2.csv")
+
+summDF2 = summary(df2)
+summDF2
+head(df2)
+
+save(df2, file = "DFenergy_featEng.Rdata")
+
+# write.csv(df2, file = "df2.csv")
