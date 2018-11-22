@@ -57,8 +57,8 @@ df2 = df[,c(1,4:10)]
 summary(df2)
 
 df2 = df2 %>%
-  mutate(total_consump_KWh = ((global_active_power + global_reactive_power)*1000)/60, #El global en KWh
-         total_rest_KWh = total_consump_KWh -kitchen -laundry_room -heater_conditioner,
+  mutate(total_consump = ((global_active_power + global_reactive_power)*1000)/60, #El global en Watt hour (Wh)
+         total_rest = total_consump -kitchen -laundry_room -heater_conditioner, #En Watt hour
          #total rest es el gasto de energia que no contempla submetering
          ############################ IMPORTANTE #################################
          ## EL TOTAL REST MUESTRA UN GASTO ENORME QUE NO SABEMOS DE DONDE SALE ##
@@ -72,5 +72,3 @@ summDF2
 head(df2)
 
 save(df2, file = "DFenergy_featEng.Rdata")
-
-# write.csv(df2, file = "df2.csv")
