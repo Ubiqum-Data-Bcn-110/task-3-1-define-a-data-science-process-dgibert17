@@ -55,7 +55,7 @@ barplot(table(df[rowSums(is.na(df)) >= 1 & rowSums(is.na(df)) < length(colnames(
 
 tab = table(df[rowSums(is.na(df)) >= 1 & rowSums(is.na(df)) < length(colnames(df))-1, 1])
 
-#### NA VALUES REPLACEMENT AND GROUP DATA BY MONTH AND AVERAGE ####
+#### NA VALUES REPLACEMENT AND GROUP DATA BY MONTH SUMMARISED BY SUM ####
 df.mean = df %>%
   select(-date, -week, -month) %>%
   na.mean(option = "mean")
@@ -64,26 +64,43 @@ df.mean = cbind(df.mean, month = df$month)
 
 df.mean = df.mean %>%
   group_by(month) %>%
-  summarise_all(mean) %>%
+  summarise_all(sum) %>%
   mutate(month = as.yearmon(month))
 
 #### DF-TS ####
-
 total.ts = ts(df.mean$total_consump, frequency = 12, start = 2007)
 plot(total.ts, col = "darkblue", lwd = 3, main = "Total energy consumption Time Series")
 
-#### TRAINING & TEST TS ####
+#### TRAINING & TEST WITH ALL DATA ####
 train = df.mean %>%
   filter(month > "Dec 2006" & month < "Jan 2010")
 
 test = df.mean %>%
   filter(month >= "Jan 2010")
 
+#### TRAINING & TEST TS - TOTAL CONSUMPTION ####
 totCons.train.ts = ts(train$total_consump, frequency = 12, start = 2007)
-plot(totCons.train.ts, col = "darkblue", lwd = 3, main = "Total energy consumption Time Series\nTraining set")
-
 totCons.test.ts = ts(test$total_consump, frequency = 12, start = 2010)
+
+par(mfrow = c(2,1))
+plot(totCons.train.ts, col = "darkblue", lwd = 3, main = "Total energy consumption Time Series\nTraining set")
 plot(totCons.test.ts, col = "darkblue", lwd = 3, main = "Total energy consumption Time Series\nTest set")
+
+#### TRAINING & TEST TS - ACTIVE POWER ####
+active.train.ts = ts(train$global_active_power, frequency = 12, start = 2007)
+active.test.ts = ts(test$global_active_power, frequency = 12, start = 2010)
+
+par(mfrow = c(2,1))
+plot(active.train.ts, col = "darkblue", lwd = 3, main = "Active energy consumption Time Series\nTraining set")
+plot(active.test.ts, col = "darkblue", lwd = 3, main = "Active energy consumption Time Series\nTest set")
+
+#### TRAINING & TEST TS - REACTIVE POWER ####
+reactive.train.ts = ts(train$global_reactive_power, frequency = 12, start = 2007)
+reactive.test.ts = ts(test$global_reactive_power, frequency = 12, start = 2010)
+
+par(mfrow = c(2,1))
+plot(reactive.train.ts, col = "darkblue", lwd = 3, main = "Reactive energy consumption Time Series\nTraining set")
+plot(reactive.test.ts, col = "darkblue", lwd = 3, main = "Reactive energy consumption Time Series\nTest set")
 
 #### PLOTING YEARS SEASONALITY BY MONTH ####
 
@@ -93,17 +110,53 @@ ggseasonplot(total.ts, year.labels=TRUE, year.labels.left=TRUE) +
   ylab("Amount consumed") +
   ggtitle("Seasonal plot: Energy consumption")
 
-#### FORECASTING MODELS WITH SEASON, TREND AND RANDOM ####
-HW.fit <- HoltWinters(totCons.train.ts)
-plot(train.fit)
-HW.for = forecast(HW.fit, h = 12)
+#### FORECASTING MODELS - TOTAL CONSUMPTION ####
+total.lm.fit = tslm(formula = totCons.train.ts ~ trend + season)
+total.lm.for = forecast(total.lm.fit, h = 12)
 
-arima.fit = auto.arima(totCons.train.ts)
-arima.for = forecast(arima.fit, h = 12)
+total.hw.fit <- HoltWinters(totCons.train.ts)
+plot(total.hw.fit)
+total.hw.for = forecast(total.hw.fit, h = 12)
 
-par(mfrow = c(2,1))
-plot(HW.for)
-plot(arima.for)
+total.arima.fit = auto.arima(totCons.train.ts)
+total.arima.for = forecast(total.arima.fit, h = 12)
+
+par(mfrow = c(3,1))
+plot(total.lm.for)
+plot(total.hw.for)
+plot(total.arima.for)
+
+#### FORECASTING MODELS - ACTIVE POWER CONSUMPTION ####
+active.lm.fit = tslm(formula = active.train.ts ~ trend + season)
+active.lm.for = forecast(active.lm.fit, h = 12)
+
+active.hw.fit <- HoltWinters(active.train.ts)
+plot(active.hw.fit)
+active.hw.for = forecast(active.hw.fit, h = 12)
+
+active.arima.fit = auto.arima(active.train.ts)
+active.arima.for = forecast(active.arima.fit, h = 12)
+
+par(mfrow = c(3,1))
+plot(active.lm.for)
+plot(active.hw.for)
+plot(active.arima.for)
+
+#### FORECASTING MODELS - REACTIVE POWER CONSUMPTION ####
+reactive.lm.fit = tslm(formula = reactive.train.ts ~ trend + season)
+reactive.lm.for = forecast(reactive.lm.fit, h = 12)
+
+reactive.hw.fit <- HoltWinters(reactive.train.ts)
+plot(reactive.hw.fit)
+reactive.hw.for = forecast(reactive.hw.fit, h = 12)
+
+reactive.arima.fit = auto.arima(reactive.train.ts)
+reactive.arima.for = forecast(reactive.arima.fit, h = 12)
+
+par(mfrow = c(3,1))
+plot(reactive.lm.for)
+plot(reactive.hw.for)
+plot(reactive.arima.for)
 
 #### CHECKING THAT THE OUTLIER PEAK COMES FROM WHITE NOISE ####
 
@@ -113,16 +166,33 @@ plot(dec$x, lwd = 3, col = "darkblue", main = "TS", ylab = "", xlab = "")
 plot(dec$seasonal, lwd = 3, col = "darkblue", main = "Seasonality", ylab = "", xlab = "")
 plot(dec$random, lwd = 3, col = "darkblue", main = "White Noise", ylab = "", xlab = "")
 
-#### FORECASTING WITHOUT RANDOM ####
-dec$random
+#### PLOTING MODELS - TEST VS TOTAL CONSUMPTION ####
+autoplot(totCons.test.ts, ylab="Amount of power consumed", xlab="", main="Total power consumption (active + reactive) forecast") +
+  geom_line(size = 8) +
+  geom_point(size = 14) +
+  autolayer(total.arima.for, PI = F, series = "Arima", size = 2, showgap = F) +
+  autolayer(total.hw.for, PI = F, series = "Holt Winters", size = 2, showgap = F) +
+  autolayer(total.lm.for, PI = F, series = "Linear Model", size = 2, showgap = F)
 
+#### PLOTING MODELS - TEST VS ACTIVE CONSUMPTION ####
+autoplot(active.test.ts, ylab="Amount of power consumed", xlab="", main = "Active power consumption forecast") +
+  geom_line(size = 8) +
+  geom_point(size = 14) +
+  autolayer(active.arima.for, PI = F, series = "Arima", size = 2, showgap = F) +
+  autolayer(active.hw.for, PI = F, series = "Holt Winters", size = 2, showgap = F) +
+  autolayer(active.lm.for, PI = F, series = "Linear Model", size = 2, showgap = F)
 
+#### PLOTING MODELS - TEST VS REACTIVE CONSUMPTION ####
+autoplot(reactive.test.ts, ylab="Amount of power consumed", xlab="", main="Reactive power consumption forecast") +
+  geom_line(size = 8) +
+  geom_point(size = 14) +
+  autolayer(reactive.arima.for, PI = F, series = "Arima", size = 2, showgap = F) +
+  autolayer(reactive.hw.for, PI = F, series = "Holt Winters", size = 2, showgap = F) +
+  autolayer(reactive.lm.for, PI = F, series = "Linear Model", size = 2, showgap = F)
 
-#### PLOTING MODELS INTO REAL TEST DATA ####
-autoplot(total.ts) +
-  geom_line(lwd = 1) +
-  geom_point(size = 3) +
-  autolayer(fore, PI = F, lwd = 2)
-
-#### ERROR METRICS FOR MODELS ####
-accuracy(fore, totCons.test.ts)
+#### ERROR METRICS FOR MODELS VS TEST DATA ####
+acc = accuracy(f = active.hw.for, active.test.ts)
+acc = as.data.frame(acc)
+acc[2,]
+row.names(acc)[2] = "HW"
+acc
