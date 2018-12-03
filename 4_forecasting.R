@@ -132,7 +132,7 @@ total.lm.fit = tslm(formula = totCons.train.ts ~ trend + season)
 total.lm.for = forecast(total.lm.fit, h = 12)
 
 total.hw.fit <- HoltWinters(totCons.train.ts)
-plot(total.hw.fit)
+plot(total.hw.fit, main = "Forecast", xlab = "Date", ylab = "Amount", lwd = 3)
 total.hw.for = forecast(total.hw.fit, h = 12)
 
 total.arima.fit = auto.arima(totCons.train.ts)
@@ -258,7 +258,6 @@ reactive.fit.2011 <- HoltWinters(reactive.ts)
 plot(reactive.fit.2011)
 reactive.for.2011 = forecast(reactive.fit.2011, h = 12)
 plot(reactive.for.2011)
-dev.off()
 
 #### ESTUDIO REACTIVE ####
 plot.ts(reactive.ts, col = "darkblue", lwd = 3, main = "Reactive energy consumption")
